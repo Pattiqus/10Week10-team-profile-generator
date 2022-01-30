@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "serve": "webpack serve",
-    "start": "webpack-dev-server --progress --colors",
+    "start": "tsc -p .",
     "watch": "webpack --watch",
     "build": "webpack --mode=production --node-env=production",
     "build:dev": "webpack --mode=development",
@@ -40,6 +40,7 @@
     "json-loader": "^0.5.7"
   },
   "devDependencies": {
+    "@types/inquirer": "^8.2.0",
     "@types/jest": "^27.4.0",
     "@types/node": "^17.0.13",
     "@types/webpack": "^5.28.0",
