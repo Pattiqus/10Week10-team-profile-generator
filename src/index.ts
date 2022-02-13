@@ -1,210 +1,161 @@
 import inquirer from 'inquirer';
-import { Employee } from "./models/Employee";
-import { Intern } from "./models/Intern";
-import { Engineer } from "./models/Engineer";
-import { Manager } from "./models/Manager";
 import { HtmlOutput } from "./util/HtmlOutput";
+import { DynamicClass } from "./util/DynamicClass";
+import {
+    questionRolesApi,
+    rolesAvailable,
+    employeeQuestions,
+    continueQuestion,
+    typeQuestion,
+} from "./models/Questions";
+import fs from 'fs';
+import path from 'path';
 
 
-// const fs = require('fs');
-// const util = require('util');
-
-const employeeQuestions = [
-    {
-        type: 'input',
-        name: 'name',
-        message: 'Please enter employee name.'
-
-    },
-    {
-        type: 'input',
-        name: 'id',
-        message: 'Please enter employee ID number'
-    },
-    {
-        type: 'input',
-        name: 'email',
-        message: 'Please enter employee email address'
-    }
-
-];
-
-const managerQuestions = [
-    {
-        type: 'input',
-        name: 'officeNumber',
-        message: 'Please enter manager office number'
-    },    
-];
-
-const internQuestions = [
-    {
-        type: 'input',
-        name: 'school',
-        message: 'Please enter intern school'
-    },
-];
-
-const engineerQuestions = [
-    {
-        type: 'input',
-        name: 'github',
-        message: 'Please enter engineers github account'
-    },
-]
-const continueQuestion = [
-    {
-        type: 'list',
-        name: 'newEmployee',
-        message: 'Would you like to add another employee?',
-        choices: ['yes', 'no',]
-    },
-];
-
-const typeQuestion = [
-    {
-        type: 'list',
-        name: 'employeeType',
-        message: 'What type of employee do you want to add?',
-        choices: ['engineer', 'intern',]
-    },
-];
-
-/**
- * Function: init
- * Description: Initializes the application 
- */
- export async function init() {
-
-    // # Build: Manager Questions
-    let fullManagerQuestions = employeeQuestions.concat( managerQuestions );
-    
-    
-    
-
-    // # Define: Intern Prompt
-    let internTypePrompt = () :Promise<Intern> => {
-        // # Define: New Promise, gether intern details from inquirer prompt
-        return new Promise( ( resolveContinue, rejectContinue ) => {
-            let fullInternQuestions = employeeQuestions.concat( internQuestions );
-            inquirer.prompt( fullInternQuestions )
-                .then( internDetails => {
-                    console.log( internDetails );
-                    // # Create: New Intern
-                    let newInternModel = new Intern(
-                        internDetails.name,
-                        internDetails.id,
-                        internDetails.email,
-                        internDetails.school
-                    );
-                    // # Continues
-                    // console.log( newInternModel.getName() );
-                    // console.log( newInternModel.getId() );
-                    // console.log( newInternModel.getEmail() );
-                    // console.log( newInternModel.getSchool() );
-                    resolveContinue( newInternModel );
-                });
-        });
-        
-    };
-
-    // # Define: Engineer Prompt
-    let engineerTypePrompt = () :Promise<Engineer> => {
-        return new Promise( ( resolveContinue, rejectContinue ) => {
-            let fullEngineerQuestions = employeeQuestions.concat( engineerQuestions );
-            inquirer.prompt( fullEngineerQuestions )
-                .then( engineerDetails => {
-                    console.log( engineerDetails );
-                    
-                    // # Create: New Intern
-                    let newEngineerModel = new Engineer(
-                        engineerDetails.name,
-                        engineerDetails.id,
-                        engineerDetails.email,
-                        engineerDetails.github
-                    );
-
-                    
-                    // console.log( newEngineerModel.getName() );
-                    // console.log( newEngineerModel.getId() );
-                    // console.log( newEngineerModel.getEmail() );
-                    // console.log( newEngineerModel.getSchool() );
-                    resolveContinue( newEngineerModel );
-                });
-        });
-    };
-
-    // # Define: Function for choosing questions based on employee type chosen
-    let employeeTypePrompt = () :Promise<any> => {
-        return new Promise( ( resolveContinue, rejectContinue ) => {
-            inquirer.prompt( typeQuestion )
-                .then( employeeType => {
-
-                    switch( employeeType.employeeType.toLowerCase() ) {
-                        case "engineer":
-                            resolveContinue( engineerTypePrompt() );
-                            break;
-                        case "intern":
-                            resolveContinue( internTypePrompt() );
-                            break;
-                    }
-
-                });
-        });
-    };
-
-    let allEmployees = [];
-
-    inquirer.prompt(fullManagerQuestions)
-        .then( (managerDetails)  => {
-            // writeToFile("README.md", generateMarkdown(data))
-            console.log(managerDetails);
+// # Define: Function for choosing questions based on employee type chosen
+const employeeTypePrompt = () => {
+    console.log( typeQuestion );
+    return inquirer.prompt( typeQuestion )
+        .then( employeeType => {
+            console.log( employeeType );
             
-            allEmployees.push(
-                new Manager(
-                    managerDetails.name,
-                    managerDetails.id,
-                    managerDetails.email,
-                    managerDetails.officeNumber,
-                )
-            );
-
-            let continueQuestionPromise = () :Promise<any> =>  { 
-                return new Promise( ( resolveContinue, rejectContinue ) => {
-                 inquirer.prompt(continueQuestion)
-                    .then( async ( shouldContinue )  => {
-                        
-                        // console.log( shouldContinue );
-
-                        if( shouldContinue.newEmployee.toLowerCase() === 'yes' ) {
-                            employeeTypePrompt().then( empType => {
-                                // console.log( empType );
-                                allEmployees.push(
-                                    empType
-                                );
-                                // console.log('AB');
-                                resolveContinue( continueQuestionPromise() );
-                            });
-                        } else {
-                            // console.log( allEmployees );
-                            // console.log('CD');
-                            resolveContinue(allEmployees);
-                        }
-                    });
+            let employeeRole = employeeType.employeeType;
+            console.log( employeeRole );
+            let dynamicRolePrompt = () => {
+                let currentRole = rolesAvailable.find( ( role ) => {
+                    return role.value === employeeRole;
                 });
+                console.log( currentRole );
+                // # Retrieve: Relevant extra questions based on dynamic role
+                let currentRoleQuestionsValue = questionRolesApi.find( ( questionRole ) => {
+                    return questionRole.role === currentRole.value;
+                });
+
+                let currentRoleQuestions = currentRoleQuestionsValue.questions;
+                let roleQuestions = employeeQuestions( employeeRole ).concat( currentRoleQuestions );
+                return inquirer.prompt( roleQuestions )
+                    .then( roleDetails => {
+                        console.log( roleDetails );
+                        
+                        return import( __dirname + path.sep + 'models' + path.sep + currentRole.className + '.js' ).then( ( module:Object ) => {
+                            let className :any = Object.keys(module)[ 0 ]; 
+                            
+                            let dynamicValues = Object.values( roleDetails );
+                            let dynamicClassInstance = new DynamicClass( className, dynamicValues );
+
+                            return dynamicClassInstance;
+                        });
+
+        
+                    });
             };
 
-            continueQuestionPromise().then( dynamicEmployees => {
-                console.log('This is the final method....');
-                console.log( dynamicEmployees );
-
-                // # Generate HTML
-                let htmlOutput = new HtmlOutput( dynamicEmployees );
-            });
+            return dynamicRolePrompt();
 
         });
-}
+};
 
-// # Call: init
-init();
+
+
+// # Determine: Role that has precedence & should have the first question ()
+
+// # Reorder: Roles based on order of data 
+let reOrderdRoles = rolesAvailable.sort( ( a, b ) => {
+    return a.order - b.order;
+});
+
+// # Find: First available role with first question toggle
+let initatingRole = reOrderdRoles.find( ( role ) => {
+    return role.promptInitiator === true;
+});
+
+console.log( initatingRole );
+
+
+// # Retrieve: Relevant extra questions based on dynamic role
+let initiatingRoleQuestionsValue = questionRolesApi.find( ( questionRole ) => {
+    return questionRole.role === initatingRole.value;
+});
+
+let initiatingRoleQuestions = initiatingRoleQuestionsValue.questions;
+
+// # Build: Starting Inquirer Prompt
+let startingPrompt = () => {
+    let startingRoleQuestions = employeeQuestions( initatingRole.name ).concat( initiatingRoleQuestions );
+    
+    // # Define: Empty Array for dynamic team roles
+    let allRoles = [];
+
+    inquirer.prompt(startingRoleQuestions)
+        .then( (startingRoleDetails)  => {
+
+            // # Debug: startingRoleDetails ==> Inquirer question names as an object
+            console.log( startingRoleDetails );
+
+
+            // # Dynamically Extract: Each of those keys 
+            let dynamicValues = Object.values( startingRoleDetails );
+
+            // # Dynamically Extract: Given ClassName for initiating Role
+            let initatingRoleClassName = initatingRole.className;
+
+            // # Debugging: Target path
+            console.log( __dirname + path.sep + 'models' + path.sep + initatingRoleClassName + '.js' );
+
+            // # Check: File/Model Exists
+            if(  fs.existsSync( __dirname + path.sep + 'models' + path.sep + initatingRoleClassName + '.js' ) ) {
+                
+                import( __dirname + path.sep + 'models' + path.sep + initatingRoleClassName + '.js' ).then( ( module:Object ) => {
+                    let className :any = Object.keys(module)[ 0 ]; 
+                    let dynamicClassInstance = new DynamicClass( className, dynamicValues );
+                    allRoles.push(
+                        dynamicClassInstance
+                    );
+                    
+                    let continueQuestionPrompt = () => {
+                        return new Promise( ( resolveContinue, rejectContinue ) => {
+                            inquirer.prompt(continueQuestion)
+                                .then( async ( shouldContinue )  => {
+                                    console.log( shouldContinue );
+                                    if( shouldContinue.newEmployee.toLowerCase() === 'yes' ) {
+                                        employeeTypePrompt().then( empType => {
+
+                                            allRoles.push(
+                                                empType
+                                            );
+                                            resolveContinue ( continueQuestionPrompt() );
+                                        });
+                                    } else {
+                                        resolveContinue( allRoles );
+                                    }
+                            });
+                        });
+                    };
+                    continueQuestionPrompt().then( dynamicEmployees => {
+                        console.log('This is the final method....');
+                        console.log( dynamicEmployees );
+        
+                        // # Generate HTML
+                        let htmlOutput = new HtmlOutput( dynamicEmployees );
+                        htmlOutput.createFile();
+                    });
+        
+
+                });
+            } else {
+                throw Error(
+                    "Dynamic Role (" +
+                    initatingRole.name +
+                    ") has missing model for path: " + __dirname + path.sep + "models" + path.sep +
+                    initatingRole.className + ".js" 
+                );
+            }
+
+            // # Debugging: Output the roles that were added to all roles
+            console.log( allRoles );
+        });
+
+};
+
+startingPrompt();
 

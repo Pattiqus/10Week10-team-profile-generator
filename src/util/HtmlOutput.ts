@@ -2,62 +2,9 @@ import { Engineer } from '../models/Engineer';
 import { Employee } from '../models/Employee';
 import { Intern } from '../models/Intern';
 import { Manager } from '../models/Manager';
-import { fstat } from 'fs';
-const createManager = (Manager) => {
-    return`
-    <article>: class="col-4 mt-3">
-        <div class="card">
-            <section class="card-header bg-primary">
-                <h2 class="text-white">${Manager.name}</h2>
-                <h3 class='text-white"><i class="bi bi-person-workspace"></i> Manager</h3>
-            </section>
+import fs from 'fs';
+import path from 'path';
 
-            <section class="card-body bg-light">
-                <p class="p-2 m-1 bg-white border">ID: ${Manager.id}</p>
-                <p class="p-2 m-1 bg-white border">Email: ${Manager.email}</p>
-                <p class="p-2 m-1 bg-white border">Office Number: ${Manager.officeNumber}</p>
-            </section>
-        </div>           
-    </article>
-    `;
-}
-
-const createEngineer = (Engineer) => {
-    return`
-    <article>: class="col-4 mt-3">
-        <div class="card">
-            <section class="card-header bg-primary">
-                <h2 class="text-white">${Engineer.name}</h2>
-                <h3 class='text-white"><i class="bi bi-laptop"></i> Engineer</h3>
-            </section>
-
-            <section class="card-body bg-light">
-                <p class="p-2 m-1 bg-white border">ID: ${Engineer.id}</p>
-                <p class="p-2 m-1 bg-white border">Email: ${Engineer.email}</p>
-                <p class="p-2 m-1 bg-white border">Office Number: ${Engineer.github}</p>
-            </section>
-        </div>           
-    </article>
-    `;
-}
-const createIntern = (Intern) => {
-    return`
-    <article>: class="col-4 mt-3">
-        <div class="card">
-            <section class="card-header bg-primary">
-                <h2 class="text-white">${Intern.name}</h2>
-                <h3 class='text-white"><i class="bi bi-person-workspace"></i> Manager</h3>
-            </section>
-
-            <section class="card-body bg-light">
-                <p class="p-2 m-1 bg-white border">ID: ${Intern.id}</p>
-                <p class="p-2 m-1 bg-white border">Email: ${Intern.email}</p>
-                <p class="p-2 m-1 bg-white border">Office Number: ${Intern.school}</p>
-            </section>
-        </div>           
-    </article>
-    `;
-}
 
 
 
@@ -65,6 +12,8 @@ export class HtmlOutput {
 
     private employees: Array<Employee | Engineer | Intern | Manager>;
 
+    // private outputDirectory =  path.sep + '..' + path.sep + 'output';
+    private outputDirectory =  path.resolve(__dirname, '..', '..', 'output');
     private baseHtmlStructure = `
         <!DOCTYPE html>
         <html>
@@ -93,60 +42,95 @@ export class HtmlOutput {
     </html>
     `;
 
-    constructor( employees: Array<Employee | Engineer | Intern | Manager> ) {
+    constructor( employees: any ) {
         this.employees = employees;
+        console.log( this.employees );
     }
 
 
-    outputFile = () => {
+    public createFile = () => {
+        console.log( this.outputDirectory );
+        this.outputDirectory;
+        if( fs.existsSync( this.outputDirectory ) ) {
+            console.log(  this.outputDirectory + ": Exists" );
+        } else {
+            fs.mkdirSync( this.outputDirectory );
+        }
+
+        let dynamicHtmlContent = this.generateDynamicHtml( this.employees );
         
+        
+        // # Write: To File
+        fs.writeFileSync( this.outputDirectory + path.sep + 'index.html', dynamicHtmlContent);
+
+
     }
 
-    generateDynamicHtml = ( employees ) => {
+    private generateDynamicHtml = ( employees ) :string => {
         let dynamicHtml = '';
 
         dynamicHtml += this.baseHtmlStructure;
-        employees.forEach( ( currentEmplyeeIndex, currentEmployee ) => {
+        employees.forEach( ( currentEmployee, currentEmployeeIndex ) => {
             
             
             dynamicHtml += `<div class="container">
-                                <div class"row justify-conent-center">
-                                    ${employees}
-                                </div>
+                                <div class="row justify-conent-center">`;
+            dynamicHtml += this.createRoleTemplate( currentEmployee );
+            dynamicHtml +=      `</div>
                             </div>`;
 
-
-            console.log( currentEmployee.getName() );
-            console.log( currentEmployee.getId() );
-            console.log( currentEmployee.getEmail() );
-            // console.log( currentEmployee.getSchool() );
-
-            dynamicHtml += '</div>';
         });
         
-        /**
-         * Function: employeeCardGenerator
-         * Description: Compliles team profile cards into an arra to then be added to generateDynamicHtml
-         * @param data 
-         */
-        const employeeCardGenerator = (data) => {
-            const cardArray = [];
-
-            for (let i=0; 1 < data.length; i++) {
-                const currentEmployee = data[i];
-                 
-                if ( Manager ) {
-                    const managerCard = createManager(currentEmployee);
-                    cardArray.push(managerCard);
-                } else if ( Engineer ) {
-                    const engineerCard = createEngineer(currentEmployee);
-                }
-            }
-        }
+       
 
         dynamicHtml += this.footerHtmlStructure;
         
+        return dynamicHtml;
     }
+
+    private createRoleTemplate = (role) => {
+        let roleHtml = `
+        <article class="col-4 mt-3">
+            <div class="card">
+                <section class="card-header bg-primary">
+                    <h2 class="text-white">${role.name}</h2>
+                    <h3 class="text-white"><i class="bi bi-person-workspace"></i> ${role.getRole() }</h3>
+                </section>
+    
+                <section class="card-body bg-light">
+                    <p class="p-2 m-1 bg-white border">ID: ${role.id}</p>
+                    <p class="p-2 m-1 bg-white border">Email: ${role.email}</p>`;
+
+                if( ['manager', 'engineer', 'intern'].indexOf( role.getRole().toLowerCase() ) >= 0 ) {
+                    let roleOffice;
+                    switch( role.getRole().toLowerCase() ) {
+                        case "manager":
+                            roleOffice = role.getOfficeNumber();
+                            console.log( roleOffice );
+                            break;
+                        case "engineer":
+                            roleOffice = role.getGithub();
+                            console.log( roleOffice );
+                            break;
+                        case "intern":
+                            roleOffice = role.getSchool();
+                            console.log( roleOffice );
+                            break;
+                    }
+
+                    roleHtml += `
+                    <p class="p-2 m-1 bg-white border">${ roleOffice.text }: ${ roleOffice.value }</p>
+                    `;
+                }
+
+        roleHtml += `</section>
+            </div>           
+        </article>
+        `;
+
+        return roleHtml;
+    }
+
 
 
 

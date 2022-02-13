@@ -13,8 +13,11 @@ export class Intern extends Employee {
         return 'Intern';
     }
 
-    getSchool() :string {
-        return this.school;
+    getSchool() :Object {
+        return { 
+            text: 'School Name',
+            value: this.school,
+        };
     }
 
 

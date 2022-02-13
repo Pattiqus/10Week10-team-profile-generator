@@ -12,8 +12,11 @@ export class Engineer extends Employee {
         return 'Engineer';
     }
 
-    getGithub() :string {
-        return this.github;
+    getGithub() :Object {
+        return {
+            text: "Github Profile",
+            value: this.github,
+        };
     }
 
 }

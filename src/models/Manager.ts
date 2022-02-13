@@ -9,10 +9,13 @@ export class Manager extends Employee {
     }
 
     getRole() :string {
-        return 'Engineer';
+        return 'Manager';
     }
 
-    getOfficeNumber() :number {
-        return this.officeNumber;
+    getOfficeNumber() :Object {
+        return {
+            text: "Office Number",
+            value: this.officeNumber
+        };
     }
 }
