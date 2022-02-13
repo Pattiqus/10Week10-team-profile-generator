@@ -10,9 +10,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
-      "style/*": [ "src/assets/scss/*" ],
+      "style/*": [ "src/assets/*" ],
     }
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts", "types"],
-  "exclude": ["node_modules", ".vscode"]
+  "include": ["src/**/*.ts", "types"],
+  "exclude": ["node_modules", ".vscode", "tests/**/*.ts"]
 }
