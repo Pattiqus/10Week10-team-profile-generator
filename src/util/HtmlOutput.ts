@@ -14,7 +14,7 @@ export class HtmlOutput {
 
     // private outputDirectory =  path.sep + '..' + path.sep + 'output';
     private outputDirectory =  path.resolve(__dirname, '..', '..', 'output');
-    private baseHtmlStructure = `
+    private baseTopHtmlStructure = `
         <!DOCTYPE html>
         <html>
             <head>
@@ -23,8 +23,10 @@ export class HtmlOutput {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
             <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
-            <title>Team profile viewer</title>
-            </head>
+            <title>Team profile viewer</title>`;
+
+
+    private baseBottomHtmlStructure = `</head>
                 
             <body>
                 <header class="text-center text-white bg-primary p-3 mb-5 display-3">Team</header>
@@ -33,6 +35,10 @@ export class HtmlOutput {
 
             
     `;
+
+    private stylesheets = [
+        '../assets/style.css'
+    ];
 
     private footerHtmlStructure = `
             </main>
@@ -44,15 +50,15 @@ export class HtmlOutput {
 
     constructor( employees: any ) {
         this.employees = employees;
-        console.log( this.employees );
+        // console.log( this.employees );
     }
 
 
     public createFile = () => {
-        console.log( this.outputDirectory );
+        // console.log( this.outputDirectory );
         this.outputDirectory;
         if( fs.existsSync( this.outputDirectory ) ) {
-            console.log(  this.outputDirectory + ": Exists" );
+            // console.log(  this.outputDirectory + ": Exists" );
         } else {
             fs.mkdirSync( this.outputDirectory );
         }
@@ -69,19 +75,23 @@ export class HtmlOutput {
     private generateDynamicHtml = ( employees ) :string => {
         let dynamicHtml = '';
 
-        dynamicHtml += this.baseHtmlStructure;
-        employees.forEach( ( currentEmployee, currentEmployeeIndex ) => {
-            
-            
-            dynamicHtml += `<div class="container">
-                                <div class="row justify-conent-center">`;
-            dynamicHtml += this.createRoleTemplate( currentEmployee );
-            dynamicHtml +=      `</div>
-                            </div>`;
-
+        dynamicHtml += this.baseTopHtmlStructure;
+        this.stylesheets.forEach( ( stylesheetVal, stylesheetIndex ) => {
+            // console.log( stylesheetVal, stylesheetIndex );
+            dynamicHtml += '<style type="text/css">';
+                dynamicHtml += this.getStylesheetAsStatic( stylesheetVal );
+            dynamicHtml += '</style>';
         });
+        dynamicHtml += this.baseBottomHtmlStructure;
         
-       
+        dynamicHtml += `<div class="container">`;
+            dynamicHtml += `<div class="row justify-conent-center">`;
+            employees.forEach( ( currentEmployee, currentEmployeeIndex ) => {
+                dynamicHtml +=      this.createRoleTemplate( currentEmployee ); 
+            });
+        
+            dynamicHtml += `</div>`;
+        dynamicHtml += `</div>`;
 
         dynamicHtml += this.footerHtmlStructure;
         
@@ -106,15 +116,15 @@ export class HtmlOutput {
                     switch( role.getRole().toLowerCase() ) {
                         case "manager":
                             roleOffice = role.getOfficeNumber();
-                            console.log( roleOffice );
+                            // console.log( roleOffice );
                             break;
                         case "engineer":
                             roleOffice = role.getGithub();
-                            console.log( roleOffice );
+                            // console.log( roleOffice );
                             break;
                         case "intern":
                             roleOffice = role.getSchool();
-                            console.log( roleOffice );
+                            // console.log( roleOffice );
                             break;
                     }
 
@@ -132,7 +142,17 @@ export class HtmlOutput {
     }
 
 
+    private getStylesheetAsStatic = ( stylesheet ) => {
+        let stylesheetPath = path.join( __dirname, path.sep, stylesheet );
+        if( fs.existsSync( stylesheetPath ) ) {
 
+            return fs.readFileSync( stylesheetPath ).toString();
+
+        } else {
+            // console.log( stylesheetPath );
+            throw new Error("Stylesheet at location [" + stylesheetPath + "] does not exist.");
+        }
+    };
 
 
 }

@@ -11,21 +11,22 @@ import {
 import fs from 'fs';
 import path from 'path';
 
+let dynamicEmployeesClasses = [];
 
 // # Define: Function for choosing questions based on employee type chosen
 const employeeTypePrompt = () => {
-    console.log( typeQuestion );
+    // console.log( typeQuestion );
     return inquirer.prompt( typeQuestion )
         .then( employeeType => {
-            console.log( employeeType );
+            // console.log( employeeType );
             
             let employeeRole = employeeType.employeeType;
-            console.log( employeeRole );
+            // console.log( employeeRole );
             let dynamicRolePrompt = () => {
                 let currentRole = rolesAvailable.find( ( role ) => {
                     return role.value === employeeRole;
                 });
-                console.log( currentRole );
+                // console.log( currentRole );
                 // # Retrieve: Relevant extra questions based on dynamic role
                 let currentRoleQuestionsValue = questionRolesApi.find( ( questionRole ) => {
                     return questionRole.role === currentRole.value;
@@ -35,7 +36,7 @@ const employeeTypePrompt = () => {
                 let roleQuestions = employeeQuestions( employeeRole ).concat( currentRoleQuestions );
                 return inquirer.prompt( roleQuestions )
                     .then( roleDetails => {
-                        console.log( roleDetails );
+                        // console.log( roleDetails );
                         
                         return import( __dirname + path.sep + 'models' + path.sep + currentRole.className + '.js' ).then( ( module:Object ) => {
                             let className :any = Object.keys(module)[ 0 ]; 
@@ -69,7 +70,7 @@ let initatingRole = reOrderdRoles.find( ( role ) => {
     return role.promptInitiator === true;
 });
 
-console.log( initatingRole );
+// console.log( initatingRole );
 
 
 // # Retrieve: Relevant extra questions based on dynamic role
@@ -90,7 +91,7 @@ let startingPrompt = () => {
         .then( (startingRoleDetails)  => {
 
             // # Debug: startingRoleDetails ==> Inquirer question names as an object
-            console.log( startingRoleDetails );
+            // console.log( startingRoleDetails );
 
 
             // # Dynamically Extract: Each of those keys 
@@ -100,7 +101,7 @@ let startingPrompt = () => {
             let initatingRoleClassName = initatingRole.className;
 
             // # Debugging: Target path
-            console.log( __dirname + path.sep + 'models' + path.sep + initatingRoleClassName + '.js' );
+            // console.log( __dirname + path.sep + 'models' + path.sep + initatingRoleClassName + '.js' );
 
             // # Check: File/Model Exists
             if(  fs.existsSync( __dirname + path.sep + 'models' + path.sep + initatingRoleClassName + '.js' ) ) {
@@ -116,7 +117,7 @@ let startingPrompt = () => {
                         return new Promise( ( resolveContinue, rejectContinue ) => {
                             inquirer.prompt(continueQuestion)
                                 .then( async ( shouldContinue )  => {
-                                    console.log( shouldContinue );
+                                    // console.log( shouldContinue );
                                     if( shouldContinue.newEmployee.toLowerCase() === 'yes' ) {
                                         employeeTypePrompt().then( empType => {
 
@@ -132,8 +133,8 @@ let startingPrompt = () => {
                         });
                     };
                     continueQuestionPrompt().then( dynamicEmployees => {
-                        console.log('This is the final method....');
-                        console.log( dynamicEmployees );
+                        // console.log('This is the final method....');
+                        // console.log( dynamicEmployees );
         
                         // # Generate HTML
                         let htmlOutput = new HtmlOutput( dynamicEmployees );
@@ -152,7 +153,7 @@ let startingPrompt = () => {
             }
 
             // # Debugging: Output the roles that were added to all roles
-            console.log( allRoles );
+            // console.log( allRoles );
         });
 
 };

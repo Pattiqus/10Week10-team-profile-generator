@@ -5,11 +5,12 @@
   "main": "src/index.js",
   "scripts": {
     "serve": "webpack serve",
-    "start": "npm run build && node dist/index.js",
+    "start": "npm run copy-files && npm run build && node dist/index.js",
     "build": "tsc -p .",
     "watch": "tsc -p . --watch",
     "lint": "eslint .",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "copy-files": "copyfiles -u 1 src/assets/* dist/"
   },
   "repository": {
     "type": "git",
@@ -45,6 +46,7 @@
     "@webpack-cli/generators": "^2.4.2",
     "clean-webpack-plugin": "^4.0.0",
     "copy-webpack-plugin": "^10.2.3",
+    "copyfiles": "^2.4.1",
     "css-loader": "^6.5.1",
     "declaration-bundler-webpack-plugin": "^1.0.3",
     "html-webpack-plugin": "^5.5.0",
@@ -52,6 +54,7 @@
     "jest": "^27.4.7",
     "path": "^0.12.7",
     "prettier": "^2.5.1",
+    "rimraf": "^3.0.2",
     "sass": "^1.49.0",
     "sass-loader": "^12.4.0",
     "style-loader": "^3.3.1",
